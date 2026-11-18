@@ -1,0 +1,5 @@
+.cache/
+dist/
+.keys/
+*.part
+__pycache__/

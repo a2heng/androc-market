@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Androc market index",
+  "type": "object",
+  "required": ["schema", "channel", "generated", "packs"],
+  "properties": {
+    "schema": { "type": "integer", "const": 1 },
+    "channel": { "type": "string" },
+    "generated": { "type": "string" },
+    "upstream": { "type": "object" },
+    "packs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "version", "abi", "installed", "archive"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "category": { "type": "string" },
+          "kind": { "type": "string", "enum": ["single-file", "tar"] },
+          "version": { "type": "string" },
+          "upstreamVersion": { "type": "string" },
+          "abi": { "type": "string" },
+          "minAppVersionCode": { "type": "integer" },
+          "license": { "type": "array", "items": { "type": "string" } },
+          "licenseUrl": { "type": "string" },
+          "installed": {
+            "type": "object",
+            "required": ["size", "sha256"],
+            "properties": {
+              "size": { "type": "integer" },
+              "sha256": { "type": "string" }
+            }
+          },
+          "archive": {
+            "type": "object",
+            "required": ["url", "size", "sha256"],
+            "properties": {
+              "url": { "type": "string" },
+              "size": { "type": "integer" },
+              "sha256": { "type": "string" }
+            }
+          },
+          "delta": {
+            "type": ["object", "null"],
+            "properties": {
+              "from": { "type": "string" },
+              "fromSha256": { "type": "string" },
+              "url": { "type": "string" },
+              "size": { "type": "integer" },
+              "sha256": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

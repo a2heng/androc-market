@@ -1,0 +1,67 @@
+name: opencode-pack
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: opencode-pack
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq zstd python3-pip
+          python3 -m pip install --quiet cryptography
+
+      - name: Signing key
+        env:
+          MARKET_SIGNING_KEY: ${{ secrets.MARKET_SIGNING_KEY }}
+        run: |
+          mkdir -p .keys
+          printf '%s' "$MARKET_SIGNING_KEY" > .keys/market-signing-key.pem
+          chmod 600 .keys/market-signing-key.pem
+
+      - name: Build pack + delta + signed index
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/build-opencode-pack.py --version latest --out dist
+
+      - name: Publish release
+        if: hashFiles('dist/index.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(python3 -c "import json;d=json.load(open('dist/index.json'));print(next(p['version'] for p in d['packs'] if p['id']=='kernel-opencode'))")
+          TAG="kernel-opencode-$VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/*.zst dist/index.json dist/index.json.sig --clobber
+          else
+            gh release create "$TAG" dist/*.zst dist/index.json dist/index.json.sig \
+              --title "OpenCode $VERSION" \
+              --notes "Automated pack from anomalyco/opencode $VERSION. Contains the full zstd pack and a delta from the previous pack when available."
+          fi
+
+      - name: Commit index
+        if: hashFiles('dist/index.json') != ''
+        run: |
+          cp dist/index.json index.json
+          cp dist/index.json.sig index.json.sig
+          git config user.name "androc-market"
+          git config user.email "androc-market@users.noreply.github.com"
+          git add index.json index.json.sig
+          git diff --cached --quiet || git commit -m "opencode: update index"
+          git push
