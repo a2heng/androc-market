@@ -157,12 +157,10 @@ def extract_binary(tar_path, dest):
     return dest
 
 
-def zstd(src, dest, level=19):
+def xz(src, dest, level=9):
     os.makedirs(os.path.dirname(dest), exist_ok=True)
-    subprocess.run(
-        ["zstd", f"-{level}", "-T0", "-f", src, "-o", dest],
-        check=True,
-    )
+    with open(dest, "wb") as out:
+        subprocess.run(["xz", f"-{level}", "-T0", "-c", src], stdout=out, check=True)
     return dest
 
 
@@ -226,9 +224,9 @@ def main():
     pack_version = f"{version}-1"
     tag = f"{PACK_ID}-{pack_version}"
     os.makedirs(args.out, exist_ok=True)
-    pack_name = f"{PACK_ID}-{pack_version}.zst"
+    pack_name = f"{PACK_ID}-{pack_version}.xz"
     pack_path = os.path.join(args.out, pack_name)
-    zstd(raw, pack_path)
+    xz(raw, pack_path)
     log("pack:", os.path.getsize(pack_path), sha256_file(pack_path))
 
     delta_entry = None
@@ -267,8 +265,9 @@ def main():
             "url": release_url(args.repo, tag, pack_name),
             "size": os.path.getsize(pack_path),
             "sha256": sha256_file(pack_path),
+            "format": "xz",
         },
-        "delta": delta_entry,
+        "delta": None,
     }
 
     packs = [p for p in index.get("packs", []) if p.get("id") != PACK_ID]

@@ -34,11 +34,12 @@
           },
           "archive": {
             "type": "object",
-            "required": ["url", "size", "sha256"],
+            "required": ["url", "size", "sha256", "format"],
             "properties": {
               "url": { "type": "string" },
               "size": { "type": "integer" },
-              "sha256": { "type": "string" }
+              "sha256": { "type": "string" },
+              "format": { "type": "string", "enum": ["xz", "zst"] }
             }
           },
           "delta": {
