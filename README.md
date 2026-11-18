@@ -22,9 +22,9 @@ Pack types:
 
 For `kernel-opencode`:
 
-- `archive` is a zstd-compressed raw ELF (`zstd -19`).
+- `archive` is an xz-compressed raw ELF (`xz -9`) for pure-Java, all-device decoding.
 - `installed.sha256` is the SHA-256 of the **raw** ELF.
-- `delta` is optional; applied with `zstd -d --patch-from=<old raw> <delta>`.
+- `delta` is temporarily disabled: zstd patches need a native decoder. A pure-Java block delta is the next step.
 - The app always verifies the resulting raw SHA-256 before switching versions.
 
 ## Publishing flow

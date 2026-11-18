@@ -107,5 +107,5 @@ OpenCode `3.0` 与旧 UI 不兼容：新 pack 写 `minAppVersionCode: 10`。
 | App | `0.5.0` / `versionCode 8`（thin 开发包） |
 | 契约 | `1.0.0` |
 | 索引 schema | `1` |
-| `kernel-opencode` | `2.3.2-1`（官方 2.3.2；全量 98.1 MB；delta 7.6 MB） |
-| delta 基线 | `2.3.1-1` → `2.3.2-1`，`fromSha256 = d2f4f8e8…` |
+| `kernel-opencode` | `2.3.2-1`（官方 2.3.2；全量 xz 88.6 MB；差量待接入） |
+| delta 基线 | 暂时停用（zstd patch 需要原生解码；下一步纯 Java 块差量） |
