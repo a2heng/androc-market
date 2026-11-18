@@ -21,20 +21,13 @@
       },
       "archive": {
         "url": "https://github.com/a2heng/androc-market/releases/download/kernel-opencode-2.3.2-1/kernel-opencode-2.3.2-1.zst",
-        "size": 96730301,
-        "sha256": "b441d42983608ba8cbcc13cb97526245a2a521ddd615aa55927816416bd77321"
+        "size": 98086682,
+        "sha256": "76d9a5302b509a9536aa9a5763f5909d9d4e09ff8bd23ee8dc00b1a17d06101a"
       },
-      "delta": {
-        "from": "2.3.1-1",
-        "fromSha256": "d2f4f8e81fa25196be839aa7d2940eb54fbe9c063e019ef9dcb26a6c7044907a",
-        "url": "https://github.com/a2heng/androc-market/releases/download/kernel-opencode-2.3.2-1/kernel-opencode-2.3.1-1-to-2.3.2-1.zst",
-        "size": 7625027,
-        "sha256": "f64750cb975be6c9e9d57c7d97c19667e51e1fbff3fa1484693cebd7cd423e31",
-        "long": 27
-      }
+      "delta": null
     }
   ],
-  "generated": "2026-11-18T17:30:36Z",
+  "generated": "2026-11-18T17:41:52Z",
   "upstream": {
     "opencode": "2.3.2"
   }

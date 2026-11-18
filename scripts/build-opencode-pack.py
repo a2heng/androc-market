@@ -160,7 +160,7 @@ def extract_binary(tar_path, dest):
 def zstd(src, dest, level=19):
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     subprocess.run(
-        ["zstd", f"-{level}", "-T0", "-f", "--long=27", src, "-o", dest],
+        ["zstd", f"-{level}", "-T0", "-f", src, "-o", dest],
         check=True,
     )
     return dest
