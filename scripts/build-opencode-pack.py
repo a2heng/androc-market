@@ -287,7 +287,7 @@ def main():
 
 def fetch_old_raw(old):
     """Return the old raw ELF for delta generation (cache or previous archive)."""
-    old_version = old.get("version", "")
+    old_version = old.get("upstreamVersion") or old.get("version", "")
     cache = os.path.join(ROOT, ".cache", "opencode", old_version, "opencode")
     if os.path.isfile(cache):
         if sha256_file(cache) == old.get("installed", {}).get("sha256"):
