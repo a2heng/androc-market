@@ -1,7 +1,9 @@
-name: android-musl-probe
+name: android-musl
 
-# 验证 Android build-tools 的 glibc 二进制能否在 musl/Alpine 下运行。
-# 通过后再做 JDK + Gradle 的最小构建。
+# 在纯 musl/Alpine 下验证 Android 工具链：
+#   1) build-tools 的 glibc 二进制（aapt2/zipalign/apksigner）能否跑；
+#   2) JDK + Gradle + AGP 能否真正产出一个 APK。
+# 跑通后，android 插件的 rootfs 就从 termux-bionic 切到 musl。
 on:
   workflow_dispatch:
 
@@ -13,7 +15,7 @@ jobs:
       - name: Install musl base + gcompat
         run: |
           apk add --no-cache bash curl unzip file gcompat libc6-compat \
-            libgcc libstdc++ zlib openjdk21 gradle
+            libgcc libstdc++ zlib openjdk21
 
       - name: Fetch Android build-tools
         run: |
@@ -29,7 +31,85 @@ jobs:
           "$BT/zipalign" 2>&1 | head -3
           "$BT/apksigner" --version
 
-      - name: Probe JDK + Gradle
+      - name: Probe JDK
+        run: java -version
+
+  assemble:
+    runs-on: ubuntu-latest
+    container: alpine:3.20
+    steps:
+      - name: Install musl base + gcompat
         run: |
-          java -version
+          apk add --no-cache bash curl unzip file git gcompat libc6-compat \
+            libgcc libstdc++ zlib openjdk21
+
+      - name: Gradle 9.9
+        run: |
+          curl -fL -o /opt/gradle.zip https://services.gradle.org/distributions/gradle-9.9.0-bin.zip
+          unzip -q /opt/gradle.zip -d /opt
+          ln -sf /opt/gradle-9.9.0/bin/gradle /usr/local/bin/gradle
           gradle --version
+
+      - name: Android SDK (cmdline-tools)
+        run: |
+          curl -fL -o cmdline.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          mkdir -p /opt/android-sdk/cmdline-tools
+          unzip -q cmdline.zip -d /opt/android-sdk/cmdline-tools
+          mv /opt/android-sdk/cmdline-tools/cmdline-tools /opt/android-sdk/cmdline-tools/latest
+          export ANDROID_HOME=/opt/android-sdk
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" --licenses >/dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" \
+            "platforms;android-36" "build-tools;36.0.0" >/dev/null
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+
+      - name: Minimal AGP project
+        run: |
+          mkdir -p probe/app/src/main
+          cat > probe/settings.gradle <<'EOF'
+          pluginManagement {
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
+          }
+          dependencyResolutionManagement {
+              repositories { google(); mavenCentral() }
+          }
+          rootProject.name = "probe"
+          include ":app"
+          EOF
+          cat > probe/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '9.5.1' apply false
+          }
+          EOF
+          cat > probe/app/build.gradle <<'EOF'
+          plugins { id 'com.android.application' }
+          android {
+              namespace 'com.example.muslprobe'
+              compileSdk 36
+              defaultConfig {
+                  applicationId 'com.example.muslprobe'
+                  minSdk 26
+                  targetSdk 34
+                  versionCode 1
+                  versionName '1.0'
+              }
+          }
+          EOF
+          cat > probe/gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx2048m
+          android.useAndroidX=false
+          EOF
+          cat > probe/app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <application android:label="musl-probe" />
+          </manifest>
+          EOF
+          echo "sdk.dir=$ANDROID_HOME" > probe/local.properties
+
+      - name: Build APK on musl
+        working-directory: probe
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Verify APK
+        run: |
+          ls -lh probe/app/build/outputs/apk/debug/*.apk
+          file probe/app/build/outputs/apk/debug/*.apk
