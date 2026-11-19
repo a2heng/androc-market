@@ -3,6 +3,32 @@
   "channel": "stable",
   "packs": [
     {
+      "id": "android",
+      "name": "Android 开发",
+      "category": "build",
+      "kind": "tar",
+      "version": "2-1",
+      "upstreamVersion": "2",
+      "abi": "arm64-v8a",
+      "minAppVersionCode": 9,
+      "license": [
+        "MIT"
+      ],
+      "licenseUrl": "https://github.com/a2heng/androc/blob/main/LICENSE",
+      "summary": "Android 构建、编译、打包、调试、运行的一整套：android-* skills + musl/Alpine rootfs（JDK/SDK/Gradle/aapt2）。",
+      "installed": {
+        "size": 636149760,
+        "sha256": "69d1caba9e8f4de156bf262d1767822e4f35905e32da5a726035b200573091fd"
+      },
+      "archive": {
+        "url": "https://github.com/a2heng/androc-market/releases/download/android-2-1/android-2-1.tar.xz",
+        "size": 313884592,
+        "sha256": "5d311dccd69396057026cab0fd362d1ee8655763cc132003d2a11cffe2a2a21d",
+        "format": "xz"
+      },
+      "delta": null
+    },
+    {
       "id": "kernel-opencode",
       "name": "OpenCode",
       "category": "kernel",
@@ -53,35 +79,9 @@
         "format": "xz"
       },
       "delta": null
-    },
-    {
-      "id": "android",
-      "name": "Android 开发",
-      "category": "build",
-      "kind": "tar",
-      "version": "1-1",
-      "upstreamVersion": "1",
-      "abi": "arm64-v8a",
-      "minAppVersionCode": 9,
-      "license": [
-        "MIT"
-      ],
-      "licenseUrl": "https://github.com/a2heng/androc/blob/main/LICENSE",
-      "summary": "Android 构建、编译、打包、调试、运行的一整套：android-* skills + Termux bionic rootfs（JDK/SDK/Gradle/adb）。",
-      "installed": {
-        "size": 174080,
-        "sha256": "aaa9d0a911621b9313720048936ce6ead14934b4feda2e3eeb0ba29d83cefd23"
-      },
-      "archive": {
-        "url": "https://github.com/a2heng/androc-market/releases/download/android-1-1/android-1-1.tar.xz",
-        "size": 43596,
-        "sha256": "0d13fe3a8a01162608d3c76f492e6b9ceba87071fc01b195fbbdd8c805fda2fe",
-        "format": "xz"
-      },
-      "delta": null
     }
   ],
-  "generated": "2026-11-19T08:59:09Z",
+  "generated": "2026-11-19T09:47:31Z",
   "upstream": {
     "opencode": "2.3.2"
   }
