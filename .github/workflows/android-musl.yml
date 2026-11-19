@@ -1,0 +1,35 @@
+name: android-musl-probe
+
+# 验证 Android build-tools 的 glibc 二进制能否在 musl/Alpine 下运行。
+# 通过后再做 JDK + Gradle 的最小构建。
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    container: alpine:3.20
+    steps:
+      - name: Install musl base + gcompat
+        run: |
+          apk add --no-cache bash curl unzip file gcompat libc6-compat \
+            openjdk21 gradle
+
+      - name: Fetch Android build-tools
+        run: |
+          curl -fL -o bt.zip https://dl.google.com/android/repository/build-tools_r36_linux.zip
+          unzip -q bt.zip
+          BT=$(find . -maxdepth 1 -type d -name "android-*" | head -1)
+          echo "BT=$BT" >> "$GITHUB_ENV"
+
+      - name: Probe aapt2 / zipalign / apksigner
+        run: |
+          set -x
+          "$BT/aapt2" version
+          "$BT/zipalign" 2>&1 | head -3
+          "$BT/apksigner" --version
+
+      - name: Probe JDK + Gradle
+        run: |
+          java -version
+          gradle --version
