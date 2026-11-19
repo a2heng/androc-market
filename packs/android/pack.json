@@ -1,0 +1,13 @@
+{
+  "id": "android",
+  "name": "Android 开发",
+  "category": "build",
+  "version": "1-1",
+  "upstreamVersion": "1",
+  "minAppVersionCode": 9,
+  "license": [
+    "MIT"
+  ],
+  "licenseUrl": "https://github.com/a2heng/androc/blob/main/LICENSE",
+  "summary": "Android 构建、编译、打包、调试、运行的一整套：android-* skills + Termux bionic rootfs（JDK/SDK/Gradle/adb）。"
+}

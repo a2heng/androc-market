@@ -1,0 +1,16 @@
+// Androc shared Maven mirror for Gradle.
+// Use: gradle -I /path/to/m2-init.gradle ...
+// or copy the repositories block into settings.gradle.
+def androcM2 = System.getenv("ANDROC_M2")
+def home = System.getenv("HOME") ?: System.getProperty("user.home")
+if (!androcM2) androcM2 = new File(home, "toolchain/m2").absolutePath
+
+allprojects {
+    repositories {
+        maven {
+            url = uri(androcM2)
+            // The mirror has plain jars/aars/poms copied from Gradle's cache.
+            metadataSources { mavenPom(); artifact() }
+        }
+    }
+}

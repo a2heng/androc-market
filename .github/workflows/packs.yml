@@ -1,0 +1,75 @@
+name: packs
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "packs/**"
+      - "scripts/build-pack.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: packs
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install tools
+        run: python3 -m pip install --quiet cryptography
+
+      - name: Signing key
+        env:
+          MARKET_SIGNING_KEY: ${{ secrets.MARKET_SIGNING_KEY }}
+        run: |
+          if [ -z "$MARKET_SIGNING_KEY" ]; then
+            echo "MARKET_SIGNING_KEY is not set" >&2
+            exit 1
+          fi
+          mkdir -p .keys
+          printf '%s' "$MARKET_SIGNING_KEY" > .keys/market-signing-key.pem
+          chmod 600 .keys/market-signing-key.pem
+
+      - name: Build packs + signed index
+        run: python3 scripts/build-pack.py --all --out dist
+
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          index = json.load(open("dist/index.json"))
+          for p in index["packs"]:
+              if p.get("kind") != "tar":
+                  continue
+              tag = f"{p['id']}-{p['version']}"
+              asset = os.path.basename(p["archive"]["url"])
+              path = os.path.join("dist", asset)
+              if subprocess.run(["gh", "release", "view", tag],
+                                stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL).returncode == 0:
+                  subprocess.run(["gh", "release", "upload", tag, path, "--clobber"],
+                                 check=True)
+              else:
+                  subprocess.run(["gh", "release", "create", tag, path,
+                                  "--title", f"{p['name']} {p['version']}",
+                                  "--notes", p.get("summary", "")], check=True)
+          PY
+
+      - name: Commit signed index
+        run: |
+          cp dist/index.json index.json
+          cp dist/index.json.sig index.json.sig
+          git config user.name "androc-market"
+          git config user.email "androc-market@users.noreply.github.com"
+          git add index.json index.json.sig
+          git diff --cached --quiet || git commit -m "packs: update index"
+          git push

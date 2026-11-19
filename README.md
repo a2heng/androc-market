@@ -18,7 +18,22 @@ Pack types:
 | id | kind | install |
 |---|---|---|
 | `kernel-opencode` | single-file | `files/runtime/<version>/opencode` |
-| future language/build packs | tar | `files/packs/<id>/<version>/` |
+| `android` | tar | `files/packs/android/<version>/` (skills + Termux bionic rootfs) |
+| `runtime-core` (planned) | tar | musl/Alpine rootfs for language & writing plugins |
+| future `lang-*` / `writing` | tar | `files/packs/<id>/<version>/` |
+
+Directory packs live under `packs/<id>/`:
+
+```text
+packs/android/
+├─ pack.json        # id / name / version / category / summary
+└─ skills/          # android-* skills
+```
+
+`scripts/build-pack.py --all --out dist` builds every directory pack into a
+deterministic `tar.xz`, merges the entries into `index.json`, and signs the
+exact bytes. `.github/workflows/packs.yml` publishes the archives and commits
+the signed index.
 
 For `kernel-opencode`:
 
