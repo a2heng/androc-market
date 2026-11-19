@@ -3,6 +3,32 @@
   "channel": "stable",
   "packs": [
     {
+      "id": "android",
+      "name": "Android 开发",
+      "category": "build",
+      "kind": "tar",
+      "version": "1-1",
+      "upstreamVersion": "1",
+      "abi": "arm64-v8a",
+      "minAppVersionCode": 9,
+      "license": [
+        "MIT"
+      ],
+      "licenseUrl": "https://github.com/a2heng/androc/blob/main/LICENSE",
+      "summary": "Android 构建、编译、打包、调试、运行的一整套：android-* skills + Termux bionic rootfs（JDK/SDK/Gradle/adb）。",
+      "installed": {
+        "size": 174080,
+        "sha256": "aaa9d0a911621b9313720048936ce6ead14934b4feda2e3eeb0ba29d83cefd23"
+      },
+      "archive": {
+        "url": "https://github.com/a2heng/androc-market/releases/download/android-1-1/android-1-1.tar.xz",
+        "size": 43416,
+        "sha256": "1577d913b3799eac7b81a545127f2979a3e4d4a64d61dddbbebc759e6bfdea4f",
+        "format": "xz"
+      },
+      "delta": null
+    },
+    {
       "id": "kernel-opencode",
       "name": "OpenCode",
       "category": "kernel",
@@ -28,7 +54,7 @@
       "delta": null
     }
   ],
-  "generated": "2026-11-18T17:51:27Z",
+  "generated": "2026-11-19T06:58:51Z",
   "upstream": {
     "opencode": "2.3.2"
   }
