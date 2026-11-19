@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: opencode-pack
+  group: packs
   cancel-in-progress: false
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq zstd python3-pip
+          sudo apt-get install -y -qq xz-utils python3-pip
           python3 -m pip install --quiet cryptography
 
       - name: Signing key
@@ -34,34 +34,45 @@ jobs:
           printf '%s' "$MARKET_SIGNING_KEY" > .keys/market-signing-key.pem
           chmod 600 .keys/market-signing-key.pem
 
-      - name: Build pack + delta + signed index
+      - name: Build OC (binary + runtime) + signed index
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          python3 scripts/build-opencode-pack.py --version latest --out dist
+        run: python3 scripts/build-opencode-bundle.py --version latest --out dist
 
       - name: Publish release
-        if: hashFiles('dist/index.json') != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=$(python3 -c "import json;d=json.load(open('dist/index.json'));print(next(p['version'] for p in d['packs'] if p['id']=='kernel-opencode'))")
-          TAG="kernel-opencode-$VERSION"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" dist/*.zst dist/index.json dist/index.json.sig --clobber
+          TAG=$(python3 -c "import json;d=json.load(open('dist/index.json'));print('kernel-opencode-'+next(p['version'] for p in d['packs'] if p['id']=='kernel-opencode'))")
+          ASSET=$(python3 -c "import json;d=json.load(open('dist/index.json'));print(next(p['archive']['url'] for p in d['packs'] if p['id']=='kernel-opencode').rsplit('/',1)[1])")
+          if gh release view "$TAG" -R a2heng/androc-market >/dev/null 2>&1; then
+            gh release upload "$TAG" "dist/$ASSET" -R a2heng/androc-market --clobber
           else
-            gh release create "$TAG" dist/*.zst dist/index.json dist/index.json.sig \
-              --title "OpenCode $VERSION" \
-              --notes "Automated pack from anomalyco/opencode $VERSION. Contains the full zstd pack and a delta from the previous pack when available."
+            gh release create "$TAG" "dist/$ASSET" -R a2heng/androc-market \
+              --title "OpenCode $TAG" \
+              --notes "opencode binary + musl runtime; full pack only (no delta)"
           fi
 
-      - name: Commit index
-        if: hashFiles('dist/index.json') != ''
+      - name: Commit signed index
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          cp dist/index.json index.json
-          cp dist/index.json.sig index.json.sig
-          git config user.name "androc-market"
-          git config user.email "androc-market@users.noreply.github.com"
-          git add index.json index.json.sig
-          git diff --cached --quiet || git commit -m "opencode: update index"
-          git push
+          python3 - <<'PY'
+          import base64, subprocess
+          repo = "a2heng/androc-market"
+          for name in ("index.json", "index.json.sig"):
+              data = open(f"dist/{name}", "rb").read()
+              b64 = base64.b64encode(data).decode()
+              sha = ""
+              try:
+                  sha = subprocess.check_output(
+                      ["gh", "api", f"repos/{repo}/contents/{name}", "--jq", ".sha"],
+                      text=True).strip()
+              except subprocess.CalledProcessError:
+                  pass
+              cmd = ["gh", "api", f"repos/{repo}/contents/{name}", "-X", "PUT",
+                     "-f", f"message=packs: update {name}", "-f", f"content={b64}"]
+              if sha:
+                  cmd += ["-f", f"sha={sha}"]
+              subprocess.run(cmd, check=True)
+          PY
