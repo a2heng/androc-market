@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install host tools
-        run: apk add --no-cache python3 py3-cryptography curl unzip xz github-cli
+        run: apk add --no-cache python3 py3-cryptography curl unzip xz ca-certificates github-cli
 
       - name: Build aarch64 rootfs
         run: python3 scripts/build-android-rootfs.py
