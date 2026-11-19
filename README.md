@@ -17,7 +17,7 @@ Pack types:
 
 | id | kind | install |
 |---|---|---|
-| `kernel-opencode` | single-file | `files/runtime/<version>/opencode` |
+| `kernel-opencode` | tar | `files/runtime/<version>/`（opencode + rootfs） |
 | `android` | tar | `files/packs/android/<version>/` (skills + Termux bionic rootfs) |
 | `runtime-core` (planned) | tar | musl/Alpine rootfs for language & writing plugins |
 | future `lang-*` / `writing` | tar | `files/packs/<id>/<version>/` |
@@ -37,16 +37,15 @@ the signed index.
 
 For `kernel-opencode`:
 
-- `archive` is an xz-compressed raw ELF (`xz -9`) for pure-Java, all-device decoding.
-- `installed.sha256` is the SHA-256 of the **raw** ELF.
-- `delta` is temporarily disabled: zstd patches need a native decoder. A pure-Java block delta is the next step.
-- The app always verifies the resulting raw SHA-256 before switching versions.
+- OC 默认自带 runtime：tar 里包含 `opencode` 和 `rootfs/`（Alpine musl + bash/git/python/node）。
+- `archive` 是 tar.xz；`installed.sha256` 是**未压缩 tar** 的 SHA-256。
+- 不做增量：`delta` 始终为 null，App 每次下载全量包。
 
 ## Publishing flow
 
-1. `scripts/build-opencode-pack.py` resolves the latest stable
-   `anomalyco/opencode` release, verifies the official `SHA256SUMS`/API digest,
-   extracts `opencode`, and writes `dist/*.zst`.
+1. `scripts/build-opencode-bundle.py` resolves the latest stable
+   `anomalyco/opencode` release, extracts `opencode`, adds the runtime-core
+   rootfs, and writes `dist/*.tar.xz`.
 2. It writes `index.json`, signs the exact bytes with Ed25519, and writes
    `index.json.sig`.
 3. CI creates the release `kernel-opencode-<version>-1` with the pack, delta,
