@@ -1,0 +1,42 @@
+name: android-rootfs
+
+# 组装 Android 插件的 aarch64 musl rootfs：
+#   Alpine minirootfs + openjdk21 + static aarch64 build-tools + platform
+#   + Gradle + android-* skills
+# 产物：packs/android/rootfs（再由 build-pack.py 打成 tar.xz）。
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rootfs:
+    runs-on: ubuntu-latest
+    container: alpine:3.20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install host tools
+        run: apk add --no-cache python3 curl unzip xz
+
+      - name: Build aarch64 rootfs
+        run: python3 scripts/build-android-rootfs.py
+
+      - name: Size + sanity
+        run: |
+          du -sh packs/android/rootfs
+          test -x packs/android/rootfs/opt/android-sdk/build-tools/36.0.0/aapt2
+          test -f packs/android/rootfs/opt/android-sdk/platforms/android-35/android.jar
+
+      - name: Pack (unsigned, artifact only)
+        run: python3 scripts/build-pack.py --dir packs/android --out dist --no-sign
+
+      - name: Upload pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-rootfs-pack
+          path: dist/*
+          if-no-files-found: error

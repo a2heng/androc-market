@@ -85,6 +85,8 @@ def build_tar(src):
             rel_root = os.path.relpath(root, src)
             if rel_root == ".":
                 rel_root = ""
+                # `tools/` holds build inputs (aapt2 etc.), not pack payload.
+                dirs[:] = [d for d in dirs if d != "tools"]
             for d in dirs:
                 rel = os.path.join(rel_root, d).replace(os.sep, "/")
                 add_entry(tar, os.path.join(root, d), rel, True)
