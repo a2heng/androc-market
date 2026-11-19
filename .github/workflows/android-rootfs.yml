@@ -1,14 +1,18 @@
 name: android-rootfs
 
-# 组装 Android 插件的 aarch64 musl rootfs：
+# 组装并发布 Android 插件的 aarch64 musl rootfs：
 #   Alpine minirootfs + openjdk21 + static aarch64 build-tools + platform
 #   + Gradle + android-* skills
-# 产物：packs/android/rootfs（再由 build-pack.py 打成 tar.xz）。
+# 产物：android-<version>.tar.xz（market 包）+ 签名索引。
 on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: packs
+  cancel-in-progress: false
 
 jobs:
   rootfs:
@@ -31,12 +35,41 @@ jobs:
           test -x packs/android/rootfs/opt/android-sdk/build-tools/36.0.0/aapt2
           test -f packs/android/rootfs/opt/android-sdk/platforms/android-35/android.jar
 
-      - name: Pack (unsigned, artifact only)
-        run: python3 scripts/build-pack.py --dir packs/android --out dist --no-sign
+      - name: Signing key
+        env:
+          MARKET_SIGNING_KEY: ${{ secrets.MARKET_SIGNING_KEY }}
+        run: |
+          if [ -z "$MARKET_SIGNING_KEY" ]; then
+            echo "MARKET_SIGNING_KEY is not set" >&2
+            exit 1
+          fi
+          mkdir -p .keys
+          printf '%s' "$MARKET_SIGNING_KEY" > .keys/market-signing-key.pem
+          chmod 600 .keys/market-signing-key.pem
 
-      - name: Upload pack
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-rootfs-pack
-          path: dist/*
-          if-no-files-found: error
+      - name: Build signed pack + index
+        run: python3 scripts/build-pack.py --dir packs/android --out dist
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=$(python3 -c "import json;d=json.load(open('dist/index.json'));print('android-'+next(p['version'] for p in d['packs'] if p['id']=='android'))")
+          ASSET=$(python3 -c "import json;d=json.load(open('dist/index.json'));print(next(p['archive']['url'] for p in d['packs'] if p['id']=='android').rsplit('/',1)[1])")
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "dist/$ASSET" --clobber
+          else
+            gh release create "$TAG" "dist/$ASSET" \
+              --title "Android $TAG" \
+              --notes "Alpine musl rootfs + static aarch64 build-tools + platform 35 + Gradle 9.9"
+          fi
+
+      - name: Commit signed index
+        run: |
+          cp dist/index.json index.json
+          cp dist/index.json.sig index.json.sig
+          git config user.name "androc-market"
+          git config user.email "androc-market@users.noreply.github.com"
+          git add index.json index.json.sig
+          git diff --cached --quiet || git commit -m "android: musl rootfs pack"
+          git push

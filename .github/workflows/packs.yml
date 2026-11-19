@@ -2,10 +2,6 @@ name: packs
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "packs/**"
-      - "scripts/build-pack.py"
 
 permissions:
   contents: write
