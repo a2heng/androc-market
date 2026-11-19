@@ -4,7 +4,7 @@
 Pack layout (in this repo):
 
     packs/<id>/pack.json      metadata (id, name, version, category, ...)
-    packs/<id>/**             payload
+    packs/<id>/**             payload (`tools/` is build input, not payload)
 
 The payload is packed into a deterministic tar.xz.  `installed` in the index
 is the SHA-256 of the *uncompressed tar stream*, so the app can verify the
@@ -20,10 +20,11 @@ Usage:
 import argparse
 import base64
 import hashlib
-import io
 import json
 import lzma
 import os
+import shutil
+import subprocess
 import sys
 import tarfile
 from datetime import datetime, timezone
@@ -82,13 +83,28 @@ def add_entry(tar, path, arcname, is_dir):
     info.mode = 0o755 if os.access(path, os.X_OK) and not path.endswith(
         (".md", ".json", ".txt", ".sh", ".py", ".kt", ".java")) else 0o644
     info.size = len(data)
-    tar.addfile(info, io.BytesIO(data))
+    tar.addfile(info, BytesReader(data))
 
 
-def build_tar(src):
-    """Deterministic tar of the pack directory (pack.json excluded)."""
-    buf = io.BytesIO()
-    with tarfile.open(fileobj=buf, mode="w", format=tarfile.PAX_FORMAT) as tar:
+class BytesReader:
+    """Minimal file-like wrapper so tarfile streams without extra copies."""
+
+    def __init__(self, data):
+        self._data = data
+        self._pos = 0
+
+    def read(self, n=-1):
+        if n is None or n < 0:
+            n = len(self._data) - self._pos
+        end = min(self._pos + n, len(self._data))
+        chunk = self._data[self._pos:end]
+        self._pos = end
+        return chunk
+
+
+def build_tar(src, path):
+    """Deterministic tar of the pack directory (pack.json/tools excluded)."""
+    with tarfile.open(path, mode="w", format=tarfile.PAX_FORMAT) as tar:
         for root, dirs, files in os.walk(src):
             dirs.sort()
             files.sort()
@@ -105,7 +121,17 @@ def build_tar(src):
                     continue
                 rel = os.path.join(rel_root, f).replace(os.sep, "/")
                 add_entry(tar, os.path.join(root, f), rel, False)
-    return buf.getvalue()
+    return os.path.getsize(path), sha256_file(path)
+
+
+def compress_xz(src, dest):
+    if shutil.which("xz"):
+        with open(dest, "wb") as out:
+            subprocess.run(["xz", "-9", "-T0", "-c", src], stdout=out, check=True)
+    else:
+        with open(src, "rb") as f, lzma.open(
+                dest, "wb", preset=9 | lzma.PRESET_EXTREME) as out:
+            shutil.copyfileobj(f, out, 1 << 20)
 
 
 def sign_index(path, key_path):
@@ -147,17 +173,16 @@ def build_one(src, out_dir, index):
         meta = json.load(f)
     pack_id = meta["id"]
     version = meta["version"]
-    tar_bytes = build_tar(src)
-    installed_sha = sha256_bytes(tar_bytes)
-    installed_size = len(tar_bytes)
-    xz_bytes = lzma.compress(
-        tar_bytes, format=lzma.FORMAT_XZ, preset=9 | lzma.PRESET_EXTREME
-    )
-    archive_name = f"{pack_id}-{version}.tar.xz"
     os.makedirs(out_dir, exist_ok=True)
+
+    tar_path = os.path.join(out_dir, f"{pack_id}-{version}.tar")
+    installed_size, installed_sha = build_tar(src, tar_path)
+
+    archive_name = f"{pack_id}-{version}.tar.xz"
     archive_path = os.path.join(out_dir, archive_name)
-    with open(archive_path, "wb") as f:
-        f.write(xz_bytes)
+    compress_xz(tar_path, archive_path)
+    os.remove(tar_path)
+
     tag = f"{pack_id}-{version}"
     entry = {
         "id": pack_id,
@@ -174,7 +199,7 @@ def build_one(src, out_dir, index):
         "installed": {"size": installed_size, "sha256": installed_sha},
         "archive": {
             "url": f"https://github.com/{REPO}/releases/download/{tag}/{archive_name}",
-            "size": len(xz_bytes),
+            "size": os.path.getsize(archive_path),
             "sha256": sha256_file(archive_path),
             "format": "xz",
         },
@@ -182,7 +207,7 @@ def build_one(src, out_dir, index):
     }
     packs = [p for p in index.get("packs", []) if p.get("id") != pack_id]
     index["packs"] = [entry] + packs
-    log(f"{pack_id}: {installed_size} -> {len(xz_bytes)} bytes, tag {tag}")
+    log(f"{pack_id}: {installed_size} -> {entry['archive']['size']} bytes, tag {tag}")
     return tag
 
 
