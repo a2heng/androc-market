@@ -22,8 +22,8 @@
       },
       "archive": {
         "url": "https://github.com/a2heng/androc-market/releases/download/android-1-1/android-1-1.tar.xz",
-        "size": 43416,
-        "sha256": "1577d913b3799eac7b81a545127f2979a3e4d4a64d61dddbbebc759e6bfdea4f",
+        "size": 43596,
+        "sha256": "0d13fe3a8a01162608d3c76f492e6b9ceba87071fc01b195fbbdd8c805fda2fe",
         "format": "xz"
       },
       "delta": null
@@ -54,7 +54,7 @@
       "delta": null
     }
   ],
-  "generated": "2026-11-19T07:40:07Z",
+  "generated": "2026-11-19T07:45:44Z",
   "upstream": {
     "opencode": "2.3.2"
   }
