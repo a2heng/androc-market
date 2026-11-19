@@ -3,32 +3,6 @@
   "channel": "stable",
   "packs": [
     {
-      "id": "android",
-      "name": "Android 开发",
-      "category": "build",
-      "kind": "tar",
-      "version": "2-1",
-      "upstreamVersion": "2",
-      "abi": "arm64-v8a",
-      "minAppVersionCode": 9,
-      "license": [
-        "MIT"
-      ],
-      "licenseUrl": "https://github.com/a2heng/androc/blob/main/LICENSE",
-      "summary": "Android 构建、编译、打包、调试、运行的一整套：android-* skills + musl/Alpine rootfs（JDK/SDK/Gradle/aapt2）。",
-      "installed": {
-        "size": 636149760,
-        "sha256": "69d1caba9e8f4de156bf262d1767822e4f35905e32da5a726035b200573091fd"
-      },
-      "archive": {
-        "url": "https://github.com/a2heng/androc-market/releases/download/android-2-1/android-2-1.tar.xz",
-        "size": 313884592,
-        "sha256": "5d311dccd69396057026cab0fd362d1ee8655763cc132003d2a11cffe2a2a21d",
-        "format": "xz"
-      },
-      "delta": null
-    },
-    {
       "id": "kernel-opencode",
       "name": "OpenCode",
       "category": "kernel",
@@ -50,6 +24,32 @@
         "url": "https://github.com/a2heng/androc-market/releases/download/kernel-opencode-2.3.2-2/kernel-opencode-2.3.2-2.tar.xz",
         "size": 128781524,
         "sha256": "1c340534a3fe25b5165ce7350151a946bd1e5e35e62390b978e0300042d32806",
+        "format": "xz"
+      },
+      "delta": null
+    },
+    {
+      "id": "android",
+      "name": "Android 开发",
+      "category": "build",
+      "kind": "tar",
+      "version": "2-1",
+      "upstreamVersion": "2",
+      "abi": "arm64-v8a",
+      "minAppVersionCode": 9,
+      "license": [
+        "MIT"
+      ],
+      "licenseUrl": "https://github.com/a2heng/androc/blob/main/LICENSE",
+      "summary": "Android 构建、编译、打包、调试、运行的一整套：android-* skills + musl/Alpine rootfs（JDK/SDK/Gradle/aapt2）。",
+      "installed": {
+        "size": 636149760,
+        "sha256": "69d1caba9e8f4de156bf262d1767822e4f35905e32da5a726035b200573091fd"
+      },
+      "archive": {
+        "url": "https://github.com/a2heng/androc-market/releases/download/android-2-1/android-2-1.tar.xz",
+        "size": 313884592,
+        "sha256": "5d311dccd69396057026cab0fd362d1ee8655763cc132003d2a11cffe2a2a21d",
         "format": "xz"
       },
       "delta": null
