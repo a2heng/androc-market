@@ -56,10 +56,10 @@ jobs:
         run: |
           TAG=$(python3 -c "import json;d=json.load(open('dist/index.json'));print('android-'+next(p['version'] for p in d['packs'] if p['id']=='android'))")
           ASSET=$(python3 -c "import json;d=json.load(open('dist/index.json'));print(next(p['archive']['url'] for p in d['packs'] if p['id']=='android').rsplit('/',1)[1])")
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "dist/$ASSET" --clobber
+          if gh release view "$TAG" -R a2heng/androc-market >/dev/null 2>&1; then
+            gh release upload "$TAG" "dist/$ASSET" -R a2heng/androc-market --clobber
           else
-            gh release create "$TAG" "dist/$ASSET" \
+            gh release create "$TAG" "dist/$ASSET" -R a2heng/androc-market \
               --title "Android $TAG" \
               --notes "Alpine musl rootfs + static aarch64 build-tools + platform 35 + Gradle 9.9"
           fi
