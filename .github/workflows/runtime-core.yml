@@ -1,0 +1,74 @@
+name: runtime-core
+
+# 构建内置运行时 rootfs（bash/coreutils/git + node/npx + python3/pip）。
+# APK 构建时会拉这个包并放进 assets/runtime/，所以终端和 MCP 开箱可用。
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: packs
+  cancel-in-progress: false
+
+jobs:
+  rootfs:
+    runs-on: ubuntu-latest
+    container: alpine:3.20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install host tools
+        run: apk add --no-cache python3 py3-cryptography curl unzip xz ca-certificates github-cli
+
+      - name: Build aarch64 runtime-core
+        run: python3 scripts/build-runtime-core.py
+
+      - name: Size + sanity
+        run: |
+          du -sh packs/runtime-core/rootfs
+          test -x packs/runtime-core/rootfs/bin/bash
+          test -x packs/runtime-core/rootfs/usr/bin/node
+          test -x packs/runtime-core/rootfs/usr/bin/python3
+
+      - name: Signing key
+        env:
+          MARKET_SIGNING_KEY: ${{ secrets.MARKET_SIGNING_KEY }}
+        run: |
+          if [ -z "$MARKET_SIGNING_KEY" ]; then
+            echo "MARKET_SIGNING_KEY is not set" >&2
+            exit 1
+          fi
+          mkdir -p .keys
+          printf '%s' "$MARKET_SIGNING_KEY" > .keys/market-signing-key.pem
+          chmod 600 .keys/market-signing-key.pem
+
+      - name: Build signed pack + index
+        run: python3 scripts/build-pack.py --dir packs/runtime-core --out dist
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=$(python3 -c "import json;d=json.load(open('dist/index.json'));print('runtime-core-'+next(p['version'] for p in d['packs'] if p['id']=='runtime-core'))")
+          ASSET=$(python3 -c "import json;d=json.load(open('dist/index.json'));print(next(p['archive']['url'] for p in d['packs'] if p['id']=='runtime-core').rsplit('/',1)[1])")
+          if gh release view "$TAG" -R a2heng/androc-market >/dev/null 2>&1; then
+            gh release upload "$TAG" "dist/$ASSET" -R a2heng/androc-market --clobber
+          else
+            gh release create "$TAG" "dist/$ASSET" -R a2heng/androc-market \
+              --title "Runtime $TAG" \
+              --notes "Alpine musl runtime-core: bash/coreutils/git + node/npx + python3/pip"
+          fi
+
+      - name: Commit signed index
+        run: |
+          cp dist/index.json index.json
+          cp dist/index.json.sig index.json.sig
+          git config user.name "androc-market"
+          git config user.email "androc-market@users.noreply.github.com"
+          git add index.json index.json.sig
+          git diff --cached --quiet || git commit -m "runtime-core: update index"
+          git push
