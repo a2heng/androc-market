@@ -62,17 +62,27 @@ def add_entry(tar, path, arcname, is_dir):
     info.gid = 0
     info.uname = ""
     info.gname = ""
+    if os.path.islink(path):
+        # Alpine ships absolute/dangling symlinks (jaotc, etc.); store the
+        # link itself instead of trying to open the target.
+        info.type = tarfile.SYMTYPE
+        info.linkname = os.readlink(path)
+        info.mode = 0o777
+        tar.addfile(info)
+        return
     if is_dir:
         info.type = tarfile.DIRTYPE
         info.mode = 0o755
         tar.addfile(info)
-    else:
-        with open(path, "rb") as f:
-            data = f.read()
-        info.mode = 0o755 if os.access(path, os.X_OK) and not path.endswith(
-            (".md", ".json", ".txt", ".sh", ".py", ".kt", ".java")) else 0o644
-        info.size = len(data)
-        tar.addfile(info, io.BytesIO(data))
+        return
+    if not os.path.isfile(path):
+        return
+    with open(path, "rb") as f:
+        data = f.read()
+    info.mode = 0o755 if os.access(path, os.X_OK) and not path.endswith(
+        (".md", ".json", ".txt", ".sh", ".py", ".kt", ".java")) else 0o644
+    info.size = len(data)
+    tar.addfile(info, io.BytesIO(data))
 
 
 def build_tar(src):

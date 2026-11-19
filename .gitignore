@@ -3,3 +3,4 @@ dist/
 .keys/
 *.part
 __pycache__/
+packs/*/rootfs/
