@@ -42,6 +42,7 @@ jobs:
       - name: Re-sign index
         env:
           MARKET_SIGNING_KEY: ${{ secrets.MARKET_SIGNING_KEY }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p .keys
           printf '%s' "$MARKET_SIGNING_KEY" > .keys/market-signing-key.pem
