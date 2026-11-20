@@ -2,7 +2,7 @@
   "id": "android",
   "name": "Android 开发",
   "category": "build",
-  "version": "2-3",
+  "version": "2-4",
   "upstreamVersion": "2",
   "minAppVersionCode": 9,
   "license": [
