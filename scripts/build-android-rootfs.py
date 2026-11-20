@@ -44,22 +44,38 @@ GRADLE_URL = ("https://services.gradle.org/distributions/"
 BT_VERSION = "36.0.0"
 PLATFORM_VERSION = "36"
 
+# 一套 rootfs 同时跑 OpenCode 与端侧构建：运行时工具 + JDK + 构建工具。
 PACKAGES = [
-    "openjdk21",
+    # runtime
     "bash",
     "busybox",
     "coreutils",
-    "zip",
-    "unzip",
-    "ca-certificates",
-    "fontconfig",
-    "freetype",
-    "libstdc++",
-    "libgcc",
-    "zlib",
-    "gcompat",
     "ncurses",
     "readline",
+    "util-linux",
+    "tzdata",
+    "ca-certificates",
+    "git",
+    "python3",
+    "py3-pip",
+    "nodejs",
+    "npm",
+    "openssh",
+    "make",
+    "curl",
+    "wget",
+    "tar",
+    "xz",
+    "unzip",
+    "zlib",
+    "libstdc++",
+    "libgcc",
+    "gcompat",
+    # android build
+    "openjdk21",
+    "zip",
+    "fontconfig",
+    "freetype",
 ]
 
 
