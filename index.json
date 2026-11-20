@@ -18,12 +18,12 @@
       "summary": "opencode binary + musl runtime (bash/git/python/node)",
       "installed": {
         "size": 429854720,
-        "sha256": "52c8a0c3c11a858fb0ef993b0f0847821ded429e86b76b5a4b137467cd503d0e"
+        "sha256": "c22e9f80f47169c5f68d59f51c61e5a0f8737f35a11a71d693b045da5da83b68"
       },
       "archive": {
         "url": "https://github.com/a2heng/androc-market/releases/download/kernel-opencode-2.3.2-2/kernel-opencode-2.3.2-2.tar.xz",
-        "size": 128781524,
-        "sha256": "1c340534a3fe25b5165ce7350151a946bd1e5e35e62390b978e0300042d32806",
+        "size": 128788404,
+        "sha256": "2517d71b8fba8822604133f16c74be04275d5d5c1ae171415fc8c444613ca44d",
         "format": "xz"
       },
       "delta": null
