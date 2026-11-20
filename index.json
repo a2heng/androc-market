@@ -7,7 +7,7 @@
       "name": "Android 开发",
       "category": "build",
       "kind": "tar",
-      "version": "2-2",
+      "version": "2-3",
       "upstreamVersion": "2",
       "abi": "arm64-v8a",
       "minAppVersionCode": 9,
@@ -18,13 +18,13 @@
       "licenseUrl": "https://github.com/a2heng/androc/blob/main/LICENSE",
       "summary": "Android 构建、编译、打包、调试、运行的一整套：android-* skills + musl/Alpine rootfs（JDK/SDK/Gradle/aapt2）。",
       "installed": {
-        "size": 638382080,
-        "sha256": "602fcd5e84eb3893b94982cc743ed392523db8e537514681c15ec5d030f94b9d"
+        "size": 797009920,
+        "sha256": "d59837fdb2c3f1045d2316c223ecff1494e16c6eb843e7929466cc45e881fc53"
       },
       "archive": {
-        "url": "https://github.com/a2heng/androc-market/releases/download/android-2-2/android-2-2.tar.xz",
-        "size": 314699328,
-        "sha256": "ca51ebaad73fcf7e397b9d9b56a45fe9bd6795e57131a94f7d822daa1086879f",
+        "url": "https://github.com/a2heng/androc-market/releases/download/android-2-3/android-2-3.tar.xz",
+        "size": 345314756,
+        "sha256": "7aa3210dcf1794e69b63dc8af12a1a41b36902d1d783815083d7f84a5c25ae0a",
         "format": "xz"
       },
       "delta": null
@@ -56,7 +56,7 @@
       "delta": null
     }
   ],
-  "generated": "2026-11-20T02:44:34Z",
+  "generated": "2026-11-20T02:53:59Z",
   "upstream": {
     "opencode": "2.3.2"
   }
