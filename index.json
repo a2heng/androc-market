@@ -7,7 +7,7 @@
       "name": "Android 开发",
       "category": "build",
       "kind": "tar",
-      "version": "2-3",
+      "version": "2-4",
       "upstreamVersion": "2",
       "abi": "arm64-v8a",
       "minAppVersionCode": 9,
@@ -22,7 +22,7 @@
         "sha256": "d59837fdb2c3f1045d2316c223ecff1494e16c6eb843e7929466cc45e881fc53"
       },
       "archive": {
-        "url": "https://github.com/a2heng/androc-market/releases/download/android-2-3/android-2-3.tar.xz",
+        "url": "https://github.com/a2heng/androc-market/releases/download/android-2-4/android-2-4.tar.xz",
         "size": 345314756,
         "sha256": "7aa3210dcf1794e69b63dc8af12a1a41b36902d1d783815083d7f84a5c25ae0a",
         "format": "xz"
@@ -30,7 +30,7 @@
       "delta": null
     }
   ],
-  "generated": "2026-11-20T02:53:59Z",
+  "generated": "2026-11-20T03:29:00Z",
   "upstream": {
     "opencode": "2.3.2"
   }
