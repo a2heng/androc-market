@@ -9,8 +9,7 @@ description: 在这台手机上用 logcat、崩溃/ANR 分析、安装并启动�
 放进 proot 执行，adb 二进制和它依赖的库在那里都可用。
 不需要额外包一层，也不需要给命令分类。
 
-优先用 16 KB 的 Termux `adb`（`$PREFIX/bin/adb`）；它是匹配的
-aarch64 构建。`$HOME/toolchain/platform-tools/adb` 是备选。
+adb 用包内的静态 aarch64 版本：`/opt/android-sdk/platform-tools/adb`。
 
 ## 适用场景
 
@@ -37,7 +36,7 @@ adb devices
 变量和复合命令也可以；`auto` 会把整行发给 proot：
 
 ```sh
-ADB="$HOME/toolchain/platform-tools/adb"; "$ADB" devices
+ADB=/opt/android-sdk/platform-tools/adb; "$ADB" devices
 ```
 
 不需要任何 wrapper；整个 shell 已经在 proot 里。
@@ -80,10 +79,10 @@ bash ~/.config/opencode/skills/android-build/scripts/build.sh <project> debug
 本环境里的常见原因：
 
 - `Failed to find Build Tools revision` → init 脚本强制 36.0.0；检查
-  `$HOME/toolchain/android-sdk/build-tools/36.0.0/source.properties`
+  `/opt/android-sdk/build-tools/36.0.0/source.properties`
 - `core-lambda-stubs.jar` missing → 工具链包不完整
 - `aapt2` exec/format error → ABI 不对，或在 16 KB 设备上用了仅 4 KB 的 aapt2
-- `java.io.tmpdir` missing → `$PREFIX/tmp` 没有被创建
+- `java.io.tmpdir` missing → `$HOME/.cache/tmp` 没有被创建
 - 依赖不在离线缓存 → 用 `OC_BUILD_ONLINE=1` 重试
 
 ## 5. 修复并验证

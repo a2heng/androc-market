@@ -10,12 +10,11 @@ description: 在 Android 项目中添加或调试原生 C/C++ 代码（CMake/NDK
 离线包**不**包含完整的 NDK。检查：
 
 ```sh
-ls "$HOME/toolchain/android-sdk/ndk" 2>/dev/null || echo "no NDK"
+ls /opt/android-sdk/ndk 2>/dev/null || echo "no NDK"
 ```
 
-如果项目需要原生代码，必须单独安装 NDK/CMake（例如使用 Termux Studio 的
-`studio ndk install`，或一个按 16 KB 对齐的 NDK 包）。NDK 不存在时不要
-声称支持 NDK。
+原生代码需要单独准备 NDK/CMake 并放进 `/opt/android-sdk/ndk`；没有 NDK 时
+按纯 Java/Kotlin 项目处理。
 
 ## Gradle 配置
 

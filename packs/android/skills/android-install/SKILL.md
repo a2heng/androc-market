@@ -11,9 +11,7 @@ description: 用内置 adb、PackageInstaller 或 Shizuku 在这台手机上安�
 adb install -r -t /path/to/app-debug.apk
 ```
 
-两个 adb 二进制（Termux 的 `$PREFIX/bin/adb` 和
-`$HOME/toolchain/platform-tools/adb`）都能正常工作：`auto` 会在 proot 内运行
-整条命令。不需要 `oc-proot` 包装。
+adb 只有一份：`/opt/android-sdk/platform-tools/adb`，在 proot 内直接运行。
 
 `-r` 替换已安装的版本；`-t` 允许仅测试用的 APK。遇到签名不匹配时：先卸载，
 再安装：

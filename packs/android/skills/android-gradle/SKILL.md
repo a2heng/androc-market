@@ -11,13 +11,12 @@ description: 在手机上修复 Android Gradle 构建：AGP/Gradle 兼容性、S
 |---|---|
 | Gradle | 9.9.0 |
 | AGP | 9.5.1（本应用）；项目可用 8.13 或 9.x |
-| compileSdk | 35 |
-| build-tools | 36.0.0（35.0.2 的二进制改名） |
-| JDK | 21（Termux） |
+| compileSdk | 36 |
+| build-tools | 36.0.0（静态 aarch64 二进制） |
+| JDK | 21（Alpine musl） |
 | Java 源码/目标版本 | 17 |
 
-构建技能直接启动 `GradleMain`，因为 `bin/gradle` 在 Android mksh 下会失败
-（`Could not find or load main class "-Xmx64m"`）。
+构建技能直接启动包内 `GradleMain`，不依赖项目的 `gradlew`。
 
 ## 兼容性
 
@@ -44,7 +43,7 @@ org.gradle.offline=true
 | `Failed to find Build Tools revision 34.0.0` | init 脚本强制 36.0.0；在模块里加 `buildToolsVersion '36.0.0'` |
 | `core-lambda-stubs.jar` missing | 用工具链 v5+；该 jar 已内置 |
 | `aapt2` format/exec error | 用 16 KB 的 aarch64 aapt2；检查 ABI |
-| `java.io.tmpdir ... doesn't exist` | 让 `build.sh` 用 `$HOME/.cache/tmp`；不要手工创建 `$PREFIX/tmp` |
+| `java.io.tmpdir ... doesn't exist` | 让 `build.sh` 使用 `$HOME/.cache/tmp` |
 | `Could not resolve ...` | 依赖不在离线缓存；用 `android-lib-cache`，不要直接联网跑 |
 | `checkDebugAarMetadata` / AndroidX warning | 在 `gradle.properties` 加 `android.useAndroidX=true` |
 | duplicate `kotlin-stdlib` classes | 强制统一 stdlib 版本（1.8+ 已合并 jdk7/jdk8） |
