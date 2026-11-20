@@ -147,10 +147,8 @@ def main():
 
     # 5. aapt2 / adb 采用 zip 里的静态 aarch64 版本，直接在 musl rootfs 里执行。
     with open(os.path.join(bt, "source.properties"), "w", encoding="utf-8") as f:
-        f.write(f"Pkg.Revision={BT_VERSION}
-")
-        f.write("Pkg.Desc=Android SDK Build-Tools
-")
+        f.write(f"Pkg.Revision={BT_VERSION}\n")
+        f.write("Pkg.Desc=Android SDK Build-Tools\n")
     stubs = os.path.join(ROOT, "packs", "android", "tools", "core-lambda-stubs.jar")
     if os.path.isfile(stubs):
         shutil.copy2(stubs, os.path.join(bt, "core-lambda-stubs.jar"))
