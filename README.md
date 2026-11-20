@@ -19,7 +19,6 @@ Pack types:
 |---|---|---|
 | `kernel-opencode` | tar | `files/runtime/<version>/`（opencode + rootfs） |
 | `android` | tar | `files/packs/android/<version>/` (skills + Termux bionic rootfs) |
-| `runtime-core` (planned) | tar | musl/Alpine rootfs for language & writing plugins |
 | future `lang-*` / `writing` | tar | `files/packs/<id>/<version>/` |
 
 Directory packs live under `packs/<id>/`:
@@ -44,8 +43,8 @@ For `kernel-opencode`:
 ## Publishing flow
 
 1. `scripts/build-opencode-bundle.py` resolves the latest stable
-   `anomalyco/opencode` release, extracts `opencode`, adds the runtime-core
-   rootfs, and writes `dist/*.tar.xz`.
+   `anomalyco/opencode` release, builds the musl rootfs, and writes one
+   `dist/*.tar.xz` (binary + rootfs) — there is no separate runtime pack.
 2. It writes `index.json`, signs the exact bytes with Ed25519, and writes
    `index.json.sig`.
 3. CI creates the release `kernel-opencode-<version>-1` with the pack, delta,

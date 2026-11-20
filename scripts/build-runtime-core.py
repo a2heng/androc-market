@@ -6,10 +6,8 @@ shipped (bash/coreutils/git/python/node/openssh/make/curl/wget). It travels
 with the OC component, so installing OC also gives you the terminal and the
 MCP launchers. The android toolchain stays in its own pack.
 
-It is consumed two ways:
-  * the APK build fetches this pack and extracts it into assets/runtime/
-  * `LocalRuntime` uses it as the proot `-r` root; the android pack overlays
-    the toolchain on top.
+它不再是独立的市场包：构建 `kernel-opencode` 时把 rootfs 打进同一个 tar，
+`bundle` APK 也只用这一份 rootfs（解压到 assets/runtime/）。
 
 Runs inside an Alpine container (x86_64) with cross-install support.
 """
@@ -93,7 +91,7 @@ def run(cmd, **kwargs):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default=os.path.join(ROOT, "packs", "runtime-core", "rootfs"))
+    ap.add_argument("--out", default=os.path.join(ROOT, ".cache", "runtime-core", "rootfs"))
     ap.add_argument("--cache", default=os.path.join(ROOT, ".cache", "runtime-core"))
     args = ap.parse_args()
     out = os.path.abspath(args.out)

@@ -23,13 +23,16 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSET = "opencode-linux-arm64-musl.tar.gz"
 PACK_ID = "kernel-opencode"
 REPO = "a2heng/androc-market"
-RUNTIME_URL = ("https://github.com/a2heng/androc-market/releases/download/"
-               "runtime-core-1-1/runtime-core-1-1.tar.xz")
 UA = "androc-market/1"
 
 
 def log(*args):
     print(*args, flush=True)
+
+
+def run(cmd):
+    log("+", " ".join(cmd))
+    subprocess.run(cmd, check=True)
 
 
 def sha256_file(path):
@@ -192,17 +195,14 @@ def main():
     log("extract opencode binary")
     extract_binary(tar_gz, os.path.join(stage, "opencode"))
 
-    log("extract runtime-core")
-    rc = download(RUNTIME_URL, os.path.join(cache, "runtime-core.tar.xz"))
-    with tarfile.open(rc, "r:xz") as tar:
-        for member in tar.getmembers():
-            if member.name == "rootfs" or member.name.startswith("rootfs/"):
-                try:
-                    tar.extract(member, stage, filter="fully_trusted")
-                except TypeError:
-                    tar.extract(member, stage)
-    if not os.path.isdir(os.path.join(stage, "rootfs")):
-        raise SystemExit("runtime-core rootfs missing")
+    log("build runtime rootfs")
+    # rootfs 只属于 OC 包：不再发布独立的 runtime-core 包。
+    rootfs = os.path.join(cache, "rootfs")
+    if not os.path.isdir(os.path.join(rootfs, "bin")):
+        run([sys.executable, os.path.join(ROOT, "scripts", "build-runtime-core.py"),
+             "--out", rootfs, "--cache", os.path.join(ROOT, ".cache", "runtime-core")])
+    shutil.copytree(rootfs, os.path.join(stage, "rootfs"), symlinks=True,
+                    dirs_exist_ok=True)
 
     tar_path = os.path.join(args.out, f"{PACK_ID}-{version}-2.tar")
     os.makedirs(args.out, exist_ok=True)
