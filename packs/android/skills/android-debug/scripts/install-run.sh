@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/bin/sh
 # Install and launch an APK, then print the first log lines for its package.
 # Usage: install-run.sh <apk> <package> [activity]
 set -eu

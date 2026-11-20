@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/bin/sh
 # Capture logcat for a package after launching it.
 # Usage: logcat.sh <package> [seconds] [activity]
 set -eu

@@ -18,7 +18,7 @@ Pack types:
 | id | kind | install |
 |---|---|---|
 | `kernel-opencode` | tar | `files/runtime/<version>/`（opencode + rootfs） |
-| `android` | tar | `files/packs/android/<version>/` (skills + Termux bionic rootfs) |
+| `android` | tar | `files/packs/android/<version>/` (skills + musl rootfs) |
 | future `lang-*` / `writing` | tar | `files/packs/<id>/<version>/` |
 
 Directory packs live under `packs/<id>/`:

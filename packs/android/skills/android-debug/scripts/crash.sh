@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/bin/sh
 # Print crash / ANR entries for a package from the crash and main buffers.
 # Usage: crash.sh <package>
 set -eu

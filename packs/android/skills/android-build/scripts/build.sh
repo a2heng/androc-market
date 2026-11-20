@@ -3,8 +3,8 @@
 #
 # Usage: build.sh <project-dir> [debug|release] [gradle-task]
 #
-# Layout comes from the pack, not from Termux:
-#   /opt/android-sdk, /opt/gradle/gradle-9.9.0, /usr/lib/jvm/java-21-openjdk
+# 工具都在包里：/opt/android-sdk、/opt/gradle/gradle-9.9.0、
+# /usr/lib/jvm/java-21-openjdk。
 # The JVM needs the fixexec LD_PRELOAD shim; /opt/androc/env.sh exports it.
 set -eu
 
