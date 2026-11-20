@@ -1,8 +1,7 @@
 # fixexec
 
-LD_PRELOAD shim for JVM on Android/proot: Android denies `mprotect(RW -> RWX)`,
-so HotSpot dies with "Failed to mark memory page as executable". The shim
-remaps the region in place as RWX (anonymous RWX `mmap` is allowed).
+LD_PRELOAD shim for JVM on Android/proot: Android 只允许匿名 `mmap` 直接 RWX，`mprotect(RW -> RWX)` 会被拒绝。
+该 shim 在原地址重映射为 RWX，JVM 即可正常启动。
 
 - Upstream: https://github.com/lidanthedev/Acode-fixexec
 - License: GPL-3.0-or-later (see `LICENSE`); source vendored here.

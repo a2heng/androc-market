@@ -145,9 +145,7 @@ def main():
         shutil.copy2(adb, os.path.join(out, "opt", "platform-tools", "adb"))
         os.chmod(os.path.join(out, "opt", "platform-tools", "adb"), 0o755)
 
-    # 5. aapt2 / adb 用 zip 里的静态 aarch64 版本，可直接在 musl 里运行。
-    #    不要再换成 bionic（Termux）版：解释器是 /system/bin/linker64，
-    #    proot 里跑不起来。
+    # 5. aapt2 / adb 采用 zip 里的静态 aarch64 版本，直接在 musl rootfs 里执行。
     with open(os.path.join(bt, "source.properties"), "w", encoding="utf-8") as f:
         f.write(f"Pkg.Revision={BT_VERSION}
 ")
@@ -166,7 +164,7 @@ def main():
     with zipfile.ZipFile(platform_zip) as z:
         z.extractall(platforms)
     plat = os.path.join(platforms, f"android-{PLATFORM_VERSION}")
-    # AGP 需要这四样；只放 android.jar 会报 "Failed to find target".
+    # AGP 读取这四样来识别 platform。
     for name in ("android.jar", "source.properties", "build.prop",
                  "core-for-system-modules.jar"):
         if not os.path.isfile(os.path.join(plat, name)):

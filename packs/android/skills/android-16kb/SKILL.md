@@ -87,7 +87,7 @@ armeabi-v7a/x86: SKIP
   `-Wl,-z,max-page-size=16384`。
 - 对于无法替换的仅 4 KB 依赖，在文档中说明，并在该次构建中设置
   `ANDROC_16KB_STRICT=0`。这是已知限制，不是修复。
-- 绝不要退回到 4 KB 的 `aapt2`：`aapt2` 在设备上执行，是关键工具之一。
+- 设备端工具以当前内置的静态 `aapt2` 为准；升级时换上同样能在 musl 下运行的版本。
 
 ## 内置工具链状态
 
@@ -95,16 +95,13 @@ armeabi-v7a/x86: SKIP
 |---|---|
 | opencode 2.3.2 musl | 16 KB |
 | musl loader, proot, libc++/libstdc++/libgcc, librg, libandroid-shmem | 16 KB |
-| Termux JDK（`libjvm.so`、`libjava.so`） | 16 KB |
-| Termux `bash`/`git`/`node`/`python3` | 16 KB |
-| `aapt2`（16 KB 构建） | 16 KB |
-| `aidl`（Termux 软件包，已预装） | 16 KB |
-| `adb`（Termux `android-tools`，已预装） | 16 KB |
-| `aapt`、`dexdump`、`split-select`、`zipalign`（lzhiyong 静态版） | 4 KB，可选 |
+| JDK 21（Alpine musl，`libjvm.so`、`libjava.so`） | 4 KB |
+| `bash`/`git`/`node`/`python3`（Alpine musl） | 4 KB |
+| `aapt2`、`aidl`、`adb`（lzhiyong 静态 aarch64） | 4 KB |
+| `zipalign`（同上，产包时用 `-P 16`） | 4 KB |
 
-`make-toolchain.py` 在打包前会审计关键工具（`aapt2`、`aidl`）和 Termux 的
-`adb`；一旦退化，工具链构建就会失败。上面那几个 4 KB 工具在正常构建中不会被
-AGP 8.5 执行。
+`pack.json` 里的 `android` 包在构建时会校验这些工具可执行；最终 APK 的 16 KB
+对齐由 `zipalign -P 16` 完成。
 
 ## 已知限制
 
