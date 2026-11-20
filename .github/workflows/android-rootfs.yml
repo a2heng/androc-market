@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install host tools
-        run: apk add --no-cache python3 py3-cryptography curl unzip xz ca-certificates github-cli
+        run: apk add --no-cache python3 py3-cryptography curl unzip xz ca-certificates github-cli zig
 
       - name: Build aarch64 rootfs
         run: python3 scripts/build-android-rootfs.py
@@ -33,7 +33,13 @@ jobs:
         run: |
           du -sh packs/android/rootfs
           test -x packs/android/rootfs/opt/android-sdk/build-tools/36.0.0/aapt2
-          test -f packs/android/rootfs/opt/android-sdk/platforms/android-35/android.jar
+          test -f packs/android/rootfs/opt/android-sdk/build-tools/36.0.0/source.properties
+          test -f packs/android/rootfs/opt/android-sdk/build-tools/36.0.0/core-lambda-stubs.jar
+          test -f packs/android/rootfs/opt/android-sdk/platforms/android-36/android.jar
+          test -f packs/android/rootfs/opt/android-sdk/platforms/android-36/build.prop
+          test -f packs/android/rootfs/opt/android-sdk/platforms/android-36/core-for-system-modules.jar
+          test -x packs/android/rootfs/usr/local/lib/fixexec.so
+          test -x packs/android/rootfs/opt/gradle/gradle-9.9.0/bin/gradle
 
       - name: Signing key
         env:

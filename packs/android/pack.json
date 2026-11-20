@@ -2,11 +2,12 @@
   "id": "android",
   "name": "Android 开发",
   "category": "build",
-  "version": "2-1",
+  "version": "2-2",
   "upstreamVersion": "2",
   "minAppVersionCode": 9,
   "license": [
-    "MIT"
+    "MIT",
+    "GPL-3.0-or-later"
   ],
   "licenseUrl": "https://github.com/a2heng/androc/blob/main/LICENSE",
   "summary": "Android 构建、编译、打包、调试、运行的一整套：android-* skills + musl/Alpine rootfs（JDK/SDK/Gradle/aapt2）。",

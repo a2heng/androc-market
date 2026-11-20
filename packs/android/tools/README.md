@@ -11,9 +11,3 @@ the offline `build-tools/35.0.2` directory.
 It is part of the Android SDK, distributed under the Android SDK License /
 Apache-2.0 terms. See the upstream `NOTICE.txt` in the Android SDK build-tools
 package.
-
-`aapt2-aarch64-16kb` is the self-built aarch64 `aapt2` from
-[poordevcode/termux-android-studio](https://github.com/poordevcode/termux-android-studio)
-(Apache-2.0). It supports Android SDK 35/36/37 resources and is linked with
-16 KB page-size alignment, unlike the minimal `aapt2` in
-`lzhiyong/android-sdk-tools` (4 KB aligned).

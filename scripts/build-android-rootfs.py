@@ -37,12 +37,12 @@ ALPINE_URL = ("https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/aarch64/"
               f"alpine-minirootfs-{ALPINE}-aarch64.tar.gz")
 TOOLS_URL = ("https://github.com/lzhiyong/android-sdk-tools/releases/download/"
              "35.0.2/android-sdk-tools-static-aarch64.zip")
-PLATFORM_URL = "https://dl.google.com/android/repository/platform-35_r02.zip"
+PLATFORM_URL = "https://dl.google.com/android/repository/platform-36_r01.zip"
 GRADLE_VERSION = "9.9.0"
 GRADLE_URL = ("https://services.gradle.org/distributions/"
               f"gradle-{GRADLE_VERSION}-bin.zip")
 BT_VERSION = "36.0.0"
-PLATFORM_VERSION = "35"
+PLATFORM_VERSION = "36"
 
 PACKAGES = [
     "openjdk21",
@@ -136,21 +136,28 @@ def main():
     for name in os.listdir(src_bt):
         src = os.path.join(src_bt, name)
         if os.path.isfile(src):
-            shutil.copy2(src, os.path.join(bt, name))
+            dst = os.path.join(bt, name)
+            shutil.copy2(src, dst)
+            os.chmod(dst, 0o755)
     adb = os.path.join(tmp, "platform-tools", "adb")
     if os.path.isfile(adb):
         os.makedirs(os.path.join(out, "opt", "platform-tools"), exist_ok=True)
         shutil.copy2(adb, os.path.join(out, "opt", "platform-tools", "adb"))
         os.chmod(os.path.join(out, "opt", "platform-tools", "adb"), 0o755)
 
-    # 5. 16 KB-aligned aapt2 (aarch64)
-    aapt2 = os.path.join(ROOT, "packs", "android", "tools",
-                         "aapt2-aarch64-16kb")
-    if os.path.isfile(aapt2):
-        shutil.copy2(aapt2, os.path.join(bt, "aapt2"))
-        os.chmod(os.path.join(bt, "aapt2"), 0o755)
+    # 5. aapt2 / adb 用 zip 里的静态 aarch64 版本，可直接在 musl 里运行。
+    #    不要再换成 bionic（Termux）版：解释器是 /system/bin/linker64，
+    #    proot 里跑不起来。
+    with open(os.path.join(bt, "source.properties"), "w", encoding="utf-8") as f:
+        f.write(f"Pkg.Revision={BT_VERSION}
+")
+        f.write("Pkg.Desc=Android SDK Build-Tools
+")
+    stubs = os.path.join(ROOT, "packs", "android", "tools", "core-lambda-stubs.jar")
+    if os.path.isfile(stubs):
+        shutil.copy2(stubs, os.path.join(bt, "core-lambda-stubs.jar"))
     else:
-        log("warning: missing", aapt2)
+        log("warning: missing", stubs)
 
     # 6. Platform android.jar
     platform_zip = download(PLATFORM_URL, os.path.join(cache, "platform.zip"))
@@ -158,7 +165,12 @@ def main():
     os.makedirs(platforms, exist_ok=True)
     with zipfile.ZipFile(platform_zip) as z:
         z.extractall(platforms)
-    # Google zips unpack to android-35 (already the expected name)
+    plat = os.path.join(platforms, f"android-{PLATFORM_VERSION}")
+    # AGP 需要这四样；只放 android.jar 会报 "Failed to find target".
+    for name in ("android.jar", "source.properties", "build.prop",
+                 "core-for-system-modules.jar"):
+        if not os.path.isfile(os.path.join(plat, name)):
+            raise SystemExit(f"platform android-{PLATFORM_VERSION} missing {name}")
 
     # 7. Gradle
     gradle_zip = download(GRADLE_URL, os.path.join(cache,
@@ -168,8 +180,23 @@ def main():
     with zipfile.ZipFile(gradle_zip) as z:
         members = [m for m in z.namelist() if m.startswith(f"gradle-{GRADLE_VERSION}/")]
         z.extractall(gradle_dir, members)
+    # zip 不解出可执行位：gradle 启动脚本必须 755。
+    for name in os.listdir(os.path.join(gradle_dir, f"gradle-{GRADLE_VERSION}", "bin")):
+        os.chmod(os.path.join(gradle_dir, f"gradle-{GRADLE_VERSION}", "bin", name), 0o755)
 
-    # 8. Skills
+    # 8. JVM 需要 RW -> RWX mprotect，Android 拒绝；用 LD_PRELOAD 的 shim 兼容。
+    fixexec_src = os.path.join(ROOT, "packs", "android", "tools", "fixexec", "fixexec.c")
+    fixexec_lib = os.path.join(out, "usr", "local", "lib", "fixexec.so")
+    if os.path.isfile(fixexec_src) and shutil.which("zig"):
+        os.makedirs(os.path.dirname(fixexec_lib), exist_ok=True)
+        run(["zig", "cc", "-target", "aarch64-linux-musl", "-shared", "-fPIC",
+             "-O2", "-o", fixexec_lib, fixexec_src])
+        os.chmod(fixexec_lib, 0o755)
+    else:
+        log("warning: fixexec not built (need zig + source)")
+
+    # 9. Skills
+
     skills_src = os.path.join(ROOT, "packs", "android", "skills")
     skills_dst = os.path.join(out, "opt", "androc", "skills")
     if os.path.isdir(skills_src):
@@ -186,7 +213,7 @@ def main():
                 "/opt/gradle/gradle-%s/bin:"
                 "$JAVA_HOME/bin:$PATH\n" % (BT_VERSION, GRADLE_VERSION))
 
-    # 10. Sanity check
+    # 11. Sanity check
     for path in ["bin/sh", "usr/lib/jvm", "opt/android-sdk/build-tools",
                  "opt/android-sdk/platforms"]:
         if not os.path.exists(os.path.join(out, path)):
