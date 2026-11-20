@@ -1,0 +1,73 @@
+name: runtime-rootfs
+
+# 构建 bundle 内置的 musl rootfs，作为构建输入发布（不进市场索引）。
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: packs
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: alpine:3.20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install tools
+        run: apk add --no-cache python3 py3-cryptography curl unzip xz ca-certificates github-cli tar
+
+      - name: Build rootfs
+        run: python3 scripts/build-runtime-rootfs.py --out dist
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=runtime-rootfs-1
+          if gh release view "$TAG" -R a2heng/androc-market >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/runtime-rootfs.tar.xz -R a2heng/androc-market --clobber
+          else
+            gh release create "$TAG" dist/runtime-rootfs.tar.xz -R a2heng/androc-market \
+              --title "Runtime rootfs" \
+              --notes "bundle 内置的 musl rootfs（构建输入，不进索引）"
+          fi
+
+      - name: Re-sign index
+        env:
+          MARKET_SIGNING_KEY: ${{ secrets.MARKET_SIGNING_KEY }}
+        run: |
+          mkdir -p .keys
+          printf '%s' "$MARKET_SIGNING_KEY" > .keys/market-signing-key.pem
+          python3 - <<'PY'
+          import base64, subprocess
+          from cryptography.hazmat.primitives import serialization
+          from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+          key = serialization.load_pem_private_key(
+              open(".keys/market-signing-key.pem", "rb").read(), password=None)
+          payload = open("index.json", "rb").read()
+          sig = base64.b64encode(key.sign(payload)).decode() + "\n"
+          open("index.json.sig", "w").write(sig)
+          repo = "a2heng/androc-market"
+          for name in ("index.json", "index.json.sig"):
+              data = open(name, "rb").read()
+              b64 = base64.b64encode(data).decode()
+              sha = ""
+              try:
+                  sha = subprocess.check_output(
+                      ["gh", "api", f"repos/{repo}/contents/{name}", "--jq", ".sha"],
+                      text=True).strip()
+              except subprocess.CalledProcessError:
+                  pass
+              cmd = ["gh", "api", f"repos/{repo}/contents/{name}", "-X", "PUT",
+                     "-f", f"message=packs: sign index", "-f", f"content={b64}"]
+              if sha:
+                  cmd += ["-f", f"sha={sha}"]
+              subprocess.run(cmd, check=True)
+          PY

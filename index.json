@@ -28,32 +28,6 @@
         "format": "xz"
       },
       "delta": null
-    },
-    {
-      "id": "kernel-opencode",
-      "name": "OpenCode",
-      "category": "kernel",
-      "kind": "tar",
-      "version": "2.3.2-2",
-      "upstreamVersion": "2.3.2",
-      "abi": "arm64-v8a",
-      "minAppVersionCode": 9,
-      "license": [
-        "MIT"
-      ],
-      "licenseUrl": "https://github.com/anomalyco/opencode/blob/dev/LICENSE",
-      "summary": "opencode binary + musl runtime (bash/git/python/node)",
-      "installed": {
-        "size": 429854720,
-        "sha256": "c22e9f80f47169c5f68d59f51c61e5a0f8737f35a11a71d693b045da5da83b68"
-      },
-      "archive": {
-        "url": "https://github.com/a2heng/androc-market/releases/download/kernel-opencode-2.3.2-2/kernel-opencode-2.3.2-2.tar.xz",
-        "size": 128788404,
-        "sha256": "2517d71b8fba8822604133f16c74be04275d5d5c1ae171415fc8c444613ca44d",
-        "format": "xz"
-      },
-      "delta": null
     }
   ],
   "generated": "2026-11-20T02:53:59Z",
