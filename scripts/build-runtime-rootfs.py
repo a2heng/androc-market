@@ -28,7 +28,11 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     dest = os.path.join(args.out, "runtime-rootfs.tar.xz")
     part = dest + ".part"
-    subprocess.run(["tar", "-cJf", part, "-C", args.cache, "rootfs"], check=True)
+    # 低压缩比：手机首次解压更快，包体略大（用 xz -1）。
+    subprocess.run(
+        ["tar", "-c", "-I", "xz -1 -T0", "-f", part, "-C", args.cache, "rootfs"],
+        check=True,
+    )
     os.replace(part, dest)
     print("wrote", dest, os.path.getsize(dest), "bytes")
     return 0
